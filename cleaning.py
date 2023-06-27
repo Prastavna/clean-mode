@@ -2,8 +2,9 @@ import platform
 import time
 import subprocess
 import sys
+import argparse
 
-def disable_keyboard():
+def disable_keyboard(duration):
     os_name = platform.system()
 
     if os_name == 'Windows':
@@ -14,7 +15,7 @@ def disable_keyboard():
     elif os_name == 'Darwin':
         # Disable keyboard on macOS
         command = "sudo kextunload /System/Library/Extensions/AppleHIDKeyboard.kext"
-        subprocess.run(command, shell=True, input=b"<password>\n", timeout=10, text=True)
+        subprocess.run(command, shell=True, input=b"<password>\n", timeout=duration, text=True)
 
     elif os_name == 'Linux':
         # Disable keyboard on Linux
@@ -31,8 +32,8 @@ def disable_keyboard():
         if keyboard_id:
             disable_command = "xinput float {}".format(keyboard_id)
             subprocess.run(disable_command, shell=True)
-            print("Keyboard disabled for 10 seconds...")
-            time.sleep(10)
+            print("Keyboard disabled for {} seconds...".format(duration))
+            time.sleep(duration)
             enable_command = "xinput reattach {} 3".format(keyboard_id)  # Assuming 3 is the master pointer ID
             subprocess.run(enable_command, shell=True)
             print("Keyboard re-enabled.")
@@ -44,4 +45,8 @@ def disable_keyboard():
         print("Unsupported operating system.")
         sys.exit(1)
 
-disable_keyboard()
+parser = argparse.ArgumentParser(description='Disable the keyboard for a specified duration.')
+parser.add_argument('-t', '--time', type=int, help='duration in seconds', default=10)
+
+args = parser.parse_args()
+disable_keyboard(args.time)
